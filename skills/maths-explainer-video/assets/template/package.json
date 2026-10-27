@@ -1,0 +1,30 @@
+{
+  "name": "__SLUG__",
+  "version": "1.0.0",
+  "description": "__TITLE__: an animated maths explainer video",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "lint": "eslint src && tsc",
+    "stills": "node scripts/render-stills.mjs",
+    "render": "remotion render __ID__ out/__FILE__.mp4 --scale=1.5",
+    "thumbnail": "remotion still __ID__ out/thumbnail.png --frame=60 --scale=1.5"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.522",
+    "@remotion/cli": "4.0.522",
+    "@remotion/fonts": "4.0.522",
+    "@remotion/renderer": "4.0.522",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.522"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.522",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.19.0",
+    "typescript": "5.9.3"
+  }
+}

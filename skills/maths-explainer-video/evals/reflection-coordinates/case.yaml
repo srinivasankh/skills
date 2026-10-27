@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: reflection-coordinates
+expected_outcome: |
+  A 1080p MP4 that correctly gives the image of (4, 2) as (−2, −4), shows the triangle and its reflection on a coordinate grid with the mirror line y = −x, and explains the (x, y) → (−y, −x) rule.
