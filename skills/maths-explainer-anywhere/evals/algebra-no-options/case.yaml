@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: algebra-no-options
+expected_outcome: |
+  A self-contained HTML explainer that solves 5(x − 3) = 2x + 9 correctly (x = 8), expands the bracket and collects terms step by step, checks by substitution, and handles a question with no options cleanly.

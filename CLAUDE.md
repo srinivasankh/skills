@@ -20,3 +20,11 @@ A public collection of agent skills in the open `SKILL.md` format. Each skill li
 - After any template change: scaffold a throwaway project outside the repo, then run `npm run lint`, `npm run stills` and look at every still. If Remotion can't download its browser, pass `--browser-executable=<chrome>`.
 - Keep the house style consistent: colours, type scale and motion are in `assets/template/src/style/`, and the rules are in `references/style-guide.md`. Change both together.
 - Remotion is pinned to 4.0.522. Upgrade every `@remotion/*` package together.
+
+## maths-explainer-anywhere
+
+- Turns a maths question into one self-contained HTML file. The engine (`assets/player.html`) draws every scene on a canvas and exports an MP4 with WebCodecs, using its own small MP4 writer. The model only replaces the `EXPLAINER` content block.
+- The engine stays hand-written with no outside code: no URLs, `<script src>`, imports or network calls. It has to work offline, pasted into a chat artifact.
+- After any engine change, test in a real browser (headless Chromium works): screenshot each scene, confirm the layout check says "no problems found", export the bundled example, and check the MP4 with `ffprobe` (correct duration, 1920×1080, about 5–6 MB a minute). Then check the MediaRecorder fallback's WebM duration too.
+- Keep its colours, type scale, diagrams and scene structure in step with `maths-explainer-video`, and `references/style-guide.md` in step with the kit's real API.
+

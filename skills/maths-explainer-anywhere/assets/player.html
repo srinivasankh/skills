@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maths explainer</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #07061a; color: #e8e6ff;
+    font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex; justify-content: center; padding: 16px; }
+  #app { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 12px; }
+  #stage { width: 100%; aspect-ratio: 16 / 9; height: auto; display: block;
+    border-radius: 12px; background: #0d0b2b; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button, select { font: inherit; font-size: 15px; color: #fff; background: #241c63;
+    border: 1px solid #3a3190; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  button:hover, select:hover { background: #2f2580; }
+  button.primary { background: #fbbf24; color: #0d0b2b; border-color: #fbbf24; font-weight: 700; }
+  button:disabled { opacity: .5; cursor: default; }
+  #scrub { flex: 1; min-width: 160px; accent-color: #fbbf24; }
+  #time { font-variant-numeric: tabular-nums; font-size: 14px; color: #b9b5e6; min-width: 92px; }
+  #status { font-size: 14px; color: #b9b5e6; min-height: 20px; }
+  #status a { color: #fbbf24; }
+  #check { font-size: 13px; color: #8f8ac0; }
+  #check.bad { color: #f87171; }
+  #preview { width: 100%; border-radius: 12px; display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="stage" width="1920" height="1080"></canvas>
+  <div class="bar">
+    <button id="play" class="primary">Play</button>
+    <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Position">
+    <span id="time">0:00 / 0:00</span>
+    <select id="scenes" aria-label="Jump to scene"></select>
+    <button id="record">Download video</button>
+  </div>
+  <div id="status"></div>
+  <div id="check"></div>
+  <video id="preview" controls></video>
+</div>
+
+<script>
+/* ═══════════════════════════════ CONTENT ═══════════════════════════════════
+   Replace everything between CONTENT and END CONTENT for each question.
+   The example below is a complete explainer: open this file to see it play.
+   Coordinates are on a 1280 × 720 canvas; times are in seconds.
+   ═════════════════════════════════════════════════════════════════════════ */
+const EXPLAINER = {
+  title: "How Many More Quarters?",
+  subtitle: "11+ Maths · Step-by-Step",
+  question: "How many more quarters are there in 4.5 than in 2.75?",
+  hint: "",
+  options: [["A", "1.75"], ["B", "7"], ["C", "11"], ["D", "18"]],
+  answer: "7",
+  answerOption: "B",
+  method: { name: "C.U.T.", steps: [
+    { l: "C", w: "Count", d: "the quarters in each number" },
+    { l: "U", w: "Use × 4", d: "4 quarters make 1 whole" },
+    { l: "T", w: "Take away", d: "the smaller count from the bigger" },
+  ] },
+  steps: [
+    { name: "Quarters in 4.5", seconds: 8, badge: "C", title: "Count the quarters in 4.5",
+      draw: (k) => {
+        [4, 4, 4, 4, 2].forEach((f, i) =>
+          k.bar({ x: 90 + i * 225, y: 230, parts: 4, filled: f, width: 200, height: 80, colour: k.BLUE, at: 0.4 + i * 0.4 }));
+        [1, 2, 3, 4].forEach((n, i) =>
+          k.text(String(n), 190 + i * 225, 360, { size: k.TYPE.small, colour: k.DIM, align: "center", at: 2.4, anim: "fade" }));
+        k.frac(1, 2, 190 + 4 * 225, 370, { size: 28, colour: k.DIM, at: 2.4 });
+        k.text(["4.5 × 4 = ", ["18", k.BLUE], " quarters"], 640, 500, { size: k.TYPE.math, align: "center", at: 3 });
+      } },
+    { name: "Quarters in 2.75", seconds: 7, badge: "C", title: "Count the quarters in 2.75",
+      draw: (k) => {
+        [4, 4, 3].forEach((f, i) =>
+          k.bar({ x: 200 + i * 300, y: 230, parts: 4, filled: f, width: 280, height: 80, colour: k.PURPLE, at: 0.4 + i * 0.4 }));
+        k.text(["2.75 × 4 = ", ["11", k.PURPLE], " quarters"], 640, 470, { size: k.TYPE.math, align: "center", at: 2 });
+      } },
+    { name: "Take the difference", seconds: 7, badge: "T", title: "Take away",
+      draw: (k) => {
+        k.numberLine({ x: 100, y: 300, min: 0, max: 20, step: 1, labelEvery: 2, width: 1080, at: 0.3,
+          marks: [{ value: 11, colour: k.PURPLE, label: "11" }, { value: 18, colour: k.BLUE, label: "18" }],
+          jumps: [{ from: 11, to: 18, label: "+7" }] });
+        k.text([["18", k.BLUE], " − ", ["11", k.PURPLE], " = 7 more quarters"], 640, 540, { size: k.TYPE.math, align: "center", at: 2.6 });
+      } },
+  ],
+  traps: [
+    { text: "Subtracting first: 4.5 − 2.75 = 1.75 (option A). That's wholes, not quarters.", option: "A",
+      fix: "Count in quarters (× 4), then take away: 18 − 11 = 7." },
+    { text: "Stopping after one count: 11 (C) or 18 (D)", option: "C, D" },
+    { text: "Dividing by 4 instead of multiplying", option: "" },
+  ],
+  check: { lines: ["(4.5 − 2.75) × 4", "= 1.75 × 4", "= 7"] },
+};
+
+/* ═════════════════════════════ END CONTENT ═════════════════════════════════ */
+</script>
+
+<script>
+/* ═══════════════════════════════ ENGINE ════════════════════════════════════
+   Hand-written, no libraries. Do not edit: every explainer shares this code,
+   which is what keeps them looking and behaving the same.
+   ═════════════════════════════════════════════════════════════════════════ */
+(() => {
+"use strict";
+const W = 1280, H = 720, SCALE = 1.5, FPS = 30, SAFE = 64;
+const FONT = 'Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+// ─── theme ────────────────────────────────────────────────────────────────
+const INK = "#0d0b2b", GOLD = "#fbbf24", GREEN = "#4ade80", RED = "#f87171",
+  BLUE = "#60a5fa", PURPLE = "#c084fc", WHITE = "#ffffff", DIM = "rgba(255,255,255,0.62)",
+  GREY = "#94a3b8"; // given amounts inside bars and diagrams
+const TYPE = { hero: 84, answer: 170, math: 58, heading: 46, body: 40, small: 32, caption: 26 };
+const tint = (hex, a) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+const num = (v) => String(Number(Number(v).toFixed(6))).replace("-", "−");
+
+// ─── motion (times in seconds) ────────────────────────────────────────────
+const bezier = (x1, y1, x2, y2) => (x) => {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  let lo = 0, hi = 1, s = x;
+  for (let i = 0; i < 24; i++) {
+    s = (lo + hi) / 2;
+    const bx = 3 * x1 * s * (1 - s) ** 2 + 3 * x2 * s * s * (1 - s) + s ** 3;
+    if (bx < x) lo = s; else hi = s;
+  }
+  return 3 * y1 * s * (1 - s) ** 2 + 3 * y2 * s * s * (1 - s) + s ** 3;
+};
+const easeOut = bezier(0.16, 1, 0.3, 1);
+const easeBack = bezier(0.34, 1.56, 0.64, 1);
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const prog = (t, start, dur) => clamp01((t - start) / dur);
+const fadeIn = (t, start = 0, dur = 0.67) => easeOut(prog(t, start, dur));
+const slideUp = (t, start = 0, dur = 0.67, dist = 28) => dist * (1 - easeOut(prog(t, start, dur)));
+const popIn = (t, start = 0) => 0.6 + 0.4 * easeBack(prog(t, start, 0.47));
+const grow = (t, start = 0, dur = 0.8) => easeOut(prog(t, start, dur));
+
+// ─── drawing kit ──────────────────────────────────────────────────────────
+// One kit per frame; `k.t` is seconds into the current scene. Every drawing
+// call takes `at` (when it appears) and animates in from there.
+const makeKit = (ctx, t, sceneName, warn) => {
+  const font = (size, weight) => `${weight} ${size}px ${FONT}`;
+
+  // Enter animation: returns false if not visible yet.
+  const enter = (o, cx, cy) => {
+    const at = o.at ?? 0;
+    if (t < at) return false;
+    const anim = o.anim ?? "rise";
+    ctx.globalAlpha *= anim === "none" ? 1 : fadeIn(t, at, o.dur ?? 0.6);
+    if (anim === "rise") ctx.translate(0, slideUp(t, at, o.dur ?? 0.6));
+    if (anim === "pop") {
+      const s = popIn(t, at);
+      ctx.translate(cx, cy); ctx.scale(s, s); ctx.translate(-cx, -cy);
+    }
+    return true;
+  };
+  const scoped = (o, cx, cy, fn) => {
+    ctx.save();
+    if (enter(o, cx, cy)) fn();
+    ctx.restore();
+  };
+
+  // Text segments: a string, or [[text, colour?, weight?], ...] for inline colour.
+  const toSegs = (s, colour, weight) =>
+    (Array.isArray(s) ? s : [[String(s)]]).map((g) =>
+      Array.isArray(g) ? { s: String(g[0]), c: g[1] ?? colour, w: g[2] ?? weight }
+                       : { s: String(g), c: colour, w: weight });
+  const segWidth = (segs, size) =>
+    segs.reduce((sum, g) => { ctx.font = font(size, g.w); return sum + ctx.measureText(g.s).width; }, 0);
+
+  const check = (x, y, w, h, what) => {
+    if (x < SAFE - 12 || y < SAFE - 40 || x + w > W - SAFE + 12 || y + h > H - SAFE + 40)
+      warn(sceneName, `${what} reaches the frame edge`);
+  };
+
+  const k = {
+    t, W, H, SAFE, TYPE, FONT, INK, GOLD, GREEN, RED, BLUE, PURPLE, WHITE, DIM, GREY,
+    tint, num, fadeIn, slideUp, popIn, grow, ctx,
+    area: { x: SAFE + 16, y: 150, w: W - 2 * (SAFE + 16), h: H - 150 - SAFE },
+
+    /** One line of text. Shrinks to fit `maxWidth` (never below 24 px). */
+    text(s, x, y, o = {}) {
+      let size = o.size ?? TYPE.body;
+      const weight = o.weight ?? 700, align = o.align ?? "left";
+      const segs = toSegs(s, o.colour ?? WHITE, weight);
+      const maxW = o.maxWidth ?? (align === "center" ? 2 * Math.min(x - SAFE, W - SAFE - x)
+                                : align === "right" ? x - SAFE : W - SAFE - x);
+      let w = segWidth(segs, size);
+      if (w > maxW) {
+        size = Math.max(24, Math.floor(size * maxW / w));
+        w = segWidth(segs, size);
+        if (size <= 24 && w > maxW) warn(sceneName, `text too long: "${segs.map((g) => g.s).join("").slice(0, 40)}…"`);
+      }
+      if (size < 24) warn(sceneName, "text below 24 px");
+      const left = align === "center" ? x - w / 2 : align === "right" ? x - w : x;
+      check(left, y - size / 2, w, size, "text");
+      scoped(o, left + w / 2, y, () => {
+        ctx.textBaseline = "middle"; ctx.textAlign = "left";
+        let cx = left;
+        for (const g of segs) {
+          ctx.font = font(size, g.w); ctx.fillStyle = g.c;
+          ctx.fillText(g.s, cx, y);
+          cx += ctx.measureText(g.s).width;
+        }
+      });
+      return { width: w, size };
+    },
+
+    /** Wrapped text within `width`; returns the height used. */
+    paragraph(s, x, y, o = {}) {
+      const size = o.size ?? TYPE.body, weight = o.weight ?? 400, width = o.width ?? 800;
+      const lh = size * (o.lineHeight ?? 1.4), align = o.align ?? "left";
+      // Words keep a note of whether a space came before them, so a coloured
+      // run followed by punctuation ("signs" + ".") doesn't gain a space.
+      const words = [];
+      let gap = false;
+      for (const g of toSegs(s, o.colour ?? WHITE, weight)) {
+        // Keep "18 − 11 = 7" on one line: spaces around operators don't break.
+        const nb = String.fromCharCode(160);
+        const kept = g.s.replace(/ ([=−+×÷<>≤≥≠→]) /g, nb + "$1" + nb);
+        kept.split(/(\n| +)/).forEach((p) => {
+          if (p === "") return;
+          if (p === "\n") { words.push({ br: true }); gap = false; return; }
+          if (/^ +$/.test(p)) { gap = true; return; }
+          words.push({ s: p, c: g.c, w: g.w, gap });
+          gap = false;
+        });
+      }
+      const lines = [[]];
+      let lineW = 0;
+      ctx.font = font(size, weight);
+      const space = ctx.measureText(" ").width;
+      for (const wd of words) {
+        if (wd.br) { lines.push([]); lineW = 0; continue; }
+        ctx.font = font(size, wd.w);
+        const ww = ctx.measureText(wd.s).width;
+        const sp = lineW > 0 && wd.gap ? space : 0;
+        if (lineW > 0 && lineW + sp + ww > width) { lines.push([]); lineW = 0; }
+        lines[lines.length - 1].push(wd);
+        lineW += (lineW > 0 && wd.gap ? space : 0) + ww;
+      }
+      lines.forEach((ln, i) => {
+        const segs = ln.map((wd, j) => [(j > 0 && wd.gap ? " " : "") + wd.s, wd.c, wd.w]);
+        if (segs.length) k.text(segs, align === "center" ? x : x, y + i * lh + size / 2,
+          { size, weight, align, at: (o.at ?? 0) + i * (o.lineStagger ?? 0), anim: o.anim, maxWidth: width + 4 });
+      });
+      return lines.length * lh;
+    },
+
+    /** Gold tag + heading at the top of a step scene. */
+    badge(tag, label, x, y, o = {}) {
+      scoped(o, x, y, () => {
+        ctx.font = font(28, 900);
+        const tagIsIcon = tag === "tick";
+        const tw = tagIsIcon ? 54 : Math.max(54, ctx.measureText(tag).width + 28);
+        roundRect(x, y - 27, tw, 54, 14, GOLD);
+        if (tagIsIcon) drawTick(x + tw / 2, y, 30, INK);
+        else { ctx.fillStyle = INK; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(tag, x + tw / 2, y + 1); }
+        k.text(label, x + tw + 16, y, { size: 38, weight: 800, colour: GOLD, anim: "none" });
+      });
+    },
+
+    /** A rounded translucent panel. */
+    card(x, y, w, h, o = {}) {
+      const c = o.colour ?? WHITE;
+      check(x, y, w, h, "card");
+      scoped(o, x + w / 2, y + h / 2, () => roundRect(x, y, w, h, 20, tint(c, o.fill ?? 0.08), tint(c, 0.35), 2));
+    },
+
+    /** A stacked fraction centred on (x, y). Use instead of ½-style characters. */
+    frac(top, bottom, x, y, o = {}) {
+      const size = o.size ?? TYPE.body, c = o.colour ?? WHITE;
+      scoped(o, x, y, () => {
+        ctx.font = font(size, 900); ctx.fillStyle = c; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        const w = Math.max(ctx.measureText(String(top)).width, ctx.measureText(String(bottom)).width) + 8;
+        ctx.fillText(String(top), x, y - size * 0.58);
+        ctx.fillText(String(bottom), x, y + size * 0.62);
+        ctx.fillRect(x - w / 2, y - Math.max(1.5, size / 28), w, Math.max(3, size / 14));
+      });
+    },
+
+    tick(x, y, o = {}) { scoped(o, x, y, () => drawTick(x, y, o.size ?? 36, o.colour ?? GREEN)); },
+    cross(x, y, o = {}) { scoped(o, x, y, () => drawCross(x, y, o.size ?? 36, o.colour ?? RED)); },
+
+    /** A straight line that draws itself from `at` over `dur`. */
+    line(x1, y1, x2, y2, o = {}) {
+      const at = o.at ?? 0;
+      if (t < at) return;
+      const p = grow(t, at, o.dur ?? 0.6);
+      ctx.save();
+      ctx.strokeStyle = o.colour ?? WHITE; ctx.lineWidth = o.width ?? 3; ctx.lineCap = "round";
+      if (o.dash) ctx.setLineDash(o.dash);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 + (x2 - x1) * p, y1 + (y2 - y1) * p); ctx.stroke();
+      ctx.restore();
+    },
+
+    /** An arrow that draws itself, with a head once it arrives. */
+    arrow(x1, y1, x2, y2, o = {}) {
+      k.line(x1, y1, x2, y2, { ...o, width: o.width ?? 4 });
+      const at = o.at ?? 0;
+      if (t < at + (o.dur ?? 0.6) * 0.8) return;
+      const a = Math.atan2(y2 - y1, x2 - x1), hl = 16;
+      ctx.save();
+      ctx.globalAlpha *= fadeIn(t, at + (o.dur ?? 0.6) * 0.8, 0.2);
+      ctx.fillStyle = o.colour ?? WHITE;
+      ctx.beginPath(); ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - hl * Math.cos(a - 0.45), y2 - hl * Math.sin(a - 0.45));
+      ctx.lineTo(x2 - hl * Math.cos(a + 0.45), y2 - hl * Math.sin(a + 0.45));
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    },
+
+    /** A filled or outlined polygon from [[x, y], ...] points. */
+    polygon(points, o = {}) {
+      scoped({ anim: "fade", ...o }, 0, 0, () => {
+        ctx.beginPath();
+        points.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+        ctx.closePath();
+        if (o.fill) { ctx.fillStyle = o.fill; ctx.fill(); }
+        if (o.stroke) { ctx.strokeStyle = o.stroke; ctx.lineWidth = o.width ?? 3; ctx.lineJoin = "round"; ctx.stroke(); }
+      });
+    },
+
+    /** A dot with an optional label beside it. */
+    dot(x, y, o = {}) {
+      scoped({ anim: "pop", ...o }, x, y, () => {
+        ctx.fillStyle = o.colour ?? GOLD;
+        ctx.beginPath(); ctx.arc(x, y, o.r ?? 10, 0, Math.PI * 2); ctx.fill();
+      });
+      if (o.label) k.text(o.label, x + (o.dx ?? 16), y + (o.dy ?? -22),
+        { size: o.size ?? TYPE.caption, weight: 800, colour: o.colour ?? GOLD, at: (o.at ?? 0) + 0.2, anim: "fade", align: o.align });
+    },
+
+    /** An answer-option chip; returns its width. */
+    chip(letter, value, x, y, o = {}) {
+      const c = o.colour;
+      ctx.font = font(38, 900);
+      const vw = ctx.measureText(value).width;
+      ctx.font = font(26, 900);
+      const lw = ctx.measureText(letter).width;
+      const w = lw + vw + 12 + 56;
+      scoped({ anim: "pop", ...o }, x + w / 2, y, () => {
+        ctx.globalAlpha *= o.faded ? 0.4 : 1;
+        roundRect(x, y - 34, w, 68, 16, c ? tint(c, 0.16) : tint(WHITE, 0.06), c ?? tint(WHITE, 0.16), 3);
+        ctx.textBaseline = "middle"; ctx.textAlign = "left";
+        ctx.font = font(26, 900); ctx.fillStyle = c ?? DIM; ctx.fillText(letter, x + 28, y + 3);
+        ctx.font = font(38, 900); ctx.fillStyle = c ?? WHITE; ctx.fillText(value, x + 28 + lw + 12, y + 1);
+      });
+      return w;
+    },
+
+    /** A row of chips centred on x; returns the total width. */
+    chips(options, x, y, o = {}) {
+      ctx.font = font(38, 900);
+      const widths = options.map(([l, v]) => {
+        ctx.font = font(38, 900); const vw = ctx.measureText(v).width;
+        ctx.font = font(26, 900); return ctx.measureText(l).width + vw + 68;
+      });
+      const gap = 16, total = widths.reduce((a, b) => a + b, 0) + gap * (options.length - 1);
+      if (total > W - 2 * SAFE) warn(sceneName, "answer options are too wide for one row");
+      let cx = x - total / 2;
+      options.forEach(([l, v], i) => {
+        const style = o.styleFor ? o.styleFor(l, i) : {};
+        k.chip(l, v, cx, y, { at: (o.at ?? 0) + i * (o.stagger ?? 0.2), ...style });
+        cx += widths[i] + gap;
+      });
+      return total;
+    },
+
+    // ─── diagrams ───────────────────────────────────────────────────────
+    /** A bar cut into `parts` with `filled` shaded (may be fractional). */
+    bar(o) {
+      const { x, y, parts, filled } = o, w = o.width ?? 760, h = o.height ?? 88, c = o.colour ?? BLUE, at = o.at ?? 0;
+      check(x, y, w, h, "bar");
+      if (t < at - 0.3) return;
+      ctx.save();
+      ctx.globalAlpha *= fadeIn(t, at - 0.3, 0.4);
+      roundRect(x, y, w, h, 14, tint(c, 0.08), c, 3);
+      ctx.save(); clipRound(x, y, w, h, 14);
+      ctx.fillStyle = tint(c, 0.75);
+      ctx.fillRect(x, y, w * Math.min(1, filled / parts) * grow(t, at, 0.8), h);
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      for (let i = 1; i < parts; i++) ctx.fillRect(x + (w * i) / parts - 1, y, 2, h);
+      ctx.restore(); ctx.restore();
+      if (o.label !== undefined) k.text(o.label, x + w / 2, y + h + 30, { size: TYPE.small, weight: 800, colour: c, align: "center", at: at + 0.6, anim: "fade" });
+    },
+
+    /** A part–whole bar: parts sized by value, filling left to right. */
+    barModel(o) {
+      const { x, y, parts } = o, w = o.width ?? 1000, h = o.height ?? 96, at = o.at ?? 0;
+      const sum = parts.reduce((s, p) => s + p.value, 0);
+      check(x, y, w, h, "bar model");
+      if (o.total !== undefined) k.text(o.total, x + w / 2, y - 30, { size: TYPE.small, weight: 800, align: "center", at, anim: "fade" });
+      let px = x;
+      parts.forEach((p, i) => {
+        const pw = (w * p.value) / sum, s = at + 0.27 + i * (o.stagger ?? 0.47), c = p.colour ?? BLUE;
+        if (t >= s) {
+          ctx.save();
+          ctx.globalAlpha *= fadeIn(t, s, 0.4);
+          ctx.fillStyle = tint(c, 0.7);
+          ctx.fillRect(px, y, pw * grow(t, s, 0.53), h);
+          ctx.restore();
+          k.text(p.label, px + pw / 2, y + h / 2, { size: TYPE.small, weight: 900, align: "center", maxWidth: pw - 16, at: s + 0.3, anim: "fade" });
+        }
+        px += pw;
+      });
+      if (t >= at) {
+        ctx.save(); ctx.globalAlpha *= fadeIn(t, at, 0.4);
+        roundRect(x, y, w, h, 16, null, tint(WHITE, 0.35), 3);
+        px = x;
+        parts.slice(0, -1).forEach((p) => { px += (w * p.value) / sum; ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fillRect(px - 1.5, y, 3, h); });
+        ctx.restore();
+      }
+    },
+
+    /** A number line with marks and jumps drawn in order. */
+    numberLine(o) {
+      const { x, y, min, max } = o, w = o.width ?? 1080, step = o.step ?? 1, every = o.labelEvery ?? 1, at = o.at ?? 0;
+      const pad = 34, X = (v) => x + pad + ((v - min) / (max - min)) * (w - 2 * pad);
+      check(x, y - 40, w, 120, "number line");
+      k.line(X(min), y, X(max), y, { at, dur: 0.67, width: 3 });
+      const ticks = Math.round((max - min) / step);
+      for (let i = 0; i <= ticks; i++) {
+        const v = min + i * step, lab = i % every === 0, s = at + 0.2 + i * 0.02;
+        if (t < s) continue;
+        ctx.save(); ctx.globalAlpha *= fadeIn(t, s, 0.33);
+        ctx.strokeStyle = WHITE; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(X(v), y - (lab ? 14 : 8)); ctx.lineTo(X(v), y + (lab ? 14 : 8)); ctx.stroke();
+        ctx.restore();
+        if (lab) k.text(o.format ? o.format(v) : num(v), X(v), y + 44, { size: TYPE.caption, weight: 700, colour: DIM, align: "center", at: s, anim: "none" });
+      }
+      (o.jumps ?? []).forEach((j, i) => {
+        const s = at + 1 + i * 0.73, c = j.colour ?? GOLD, x1 = X(j.from), x2 = X(j.to);
+        if (t < s) return;
+        const lift = Math.min(90, 26 + Math.abs(x2 - x1) * 0.35), p = grow(t, s, 0.6);
+        ctx.save(); ctx.strokeStyle = c; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.beginPath();
+        const N = 40;
+        for (let n = 0; n <= N * p; n++) {
+          const u = n / N, bx = (1 - u) ** 2 * x1 + 2 * u * (1 - u) * ((x1 + x2) / 2) + u * u * x2;
+          const by = (1 - u) ** 2 * (y - 4) + 2 * u * (1 - u) * (y - lift * 2) + u * u * (y - 4);
+          n ? ctx.lineTo(bx, by) : ctx.moveTo(bx, by);
+        }
+        ctx.stroke(); ctx.restore();
+        if (j.label) k.text(j.label, (x1 + x2) / 2, y - lift - 18, { size: TYPE.small, weight: 900, colour: c, align: "center", at: s + 0.4, anim: "fade" });
+      });
+      (o.marks ?? []).forEach((m, i) => {
+        const s = at + 0.8 + i * 0.27;
+        k.dot(X(m.value), y, { colour: m.colour ?? GOLD, r: 12, at: s });
+        if (m.label) k.text(m.label, X(m.value), y + 86, { size: TYPE.small, weight: 900, colour: m.colour ?? GOLD, align: "center", at: s, anim: "fade" });
+      });
+      return X;
+    },
+
+    /** A square coordinate grid; returns p(x, y) → [px, py] for drawing on it. */
+    grid(o) {
+      const { xMin, xMax, yMin, yMax } = o, at = o.at ?? 0, pad = 34;
+      const unit = o.unit ?? ((o.height ?? 560) - pad * 2) / (yMax - yMin);
+      const gw = (xMax - xMin) * unit + pad * 2, gh = (yMax - yMin) * unit + pad * 2;
+      const x0 = o.x, y0 = o.y;
+      const p = (x, y) => [x0 + pad + (x - xMin) * unit, y0 + pad + (yMax - y) * unit];
+      check(x0, y0, gw, gh, "grid");
+      if (t < at) return p;
+      ctx.save(); ctx.globalAlpha *= fadeIn(t, at, 0.5);
+      ctx.strokeStyle = tint(WHITE, 0.14); ctx.lineWidth = 1.5;
+      for (let x = xMin; x <= xMax; x++) { ctx.beginPath(); ctx.moveTo(p(x, 0)[0], y0 + pad); ctx.lineTo(p(x, 0)[0], y0 + gh - pad); ctx.stroke(); }
+      for (let y = yMin; y <= yMax; y++) { ctx.beginPath(); ctx.moveTo(x0 + pad, p(0, y)[1]); ctx.lineTo(x0 + gw - pad, p(0, y)[1]); ctx.stroke(); }
+      const [ox, oy] = p(0, 0), ls = Math.max(20, Math.min(TYPE.caption, unit * 0.42));
+      ctx.strokeStyle = WHITE; ctx.lineWidth = 3;
+      if (yMin <= 0 && yMax >= 0) { ctx.beginPath(); ctx.moveTo(x0 + pad, oy); ctx.lineTo(x0 + gw - pad, oy); ctx.stroke(); }
+      if (xMin <= 0 && xMax >= 0) { ctx.beginPath(); ctx.moveTo(ox, y0 + pad); ctx.lineTo(ox, y0 + gh - pad); ctx.stroke(); }
+      ctx.font = font(ls, 700); ctx.fillStyle = DIM; ctx.textBaseline = "middle";
+      if (yMin <= 0 && yMax >= 0) { ctx.textAlign = "center"; for (let x = xMin; x <= xMax; x++) if (x) ctx.fillText(num(x), p(x, 0)[0], oy + ls * 0.9); }
+      if (xMin <= 0 && xMax >= 0) { ctx.textAlign = "right"; for (let y = yMin; y <= yMax; y++) if (y) ctx.fillText(num(y), ox - 10, p(0, y)[1]); }
+      ctx.restore();
+      return p;
+    },
+
+    /** `count` discs popping in; the first `highlight` in `highlightColour`. */
+    counters(o) {
+      const n = o.count, per = o.perRow ?? 10, size = o.size ?? 44, gap = size * 0.35, at = o.at ?? 0;
+      for (let i = 0; i < n; i++) {
+        const cx = o.x + (i % per) * (size + gap) + size / 2, cy = o.y + Math.floor(i / per) * (size + gap) + size / 2;
+        k.dot(cx, cy, { r: size / 2, colour: i < (o.highlight ?? 0) ? (o.highlightColour ?? GOLD) : (o.colour ?? BLUE), at: at + i * (o.stagger ?? 0.1) });
+      }
+    },
+
+    /** Lines of working appearing in turn; the last (the result) in gold. */
+    working(o) {
+      const size = o.size ?? TYPE.body, gap = o.gap ?? 0.8, lh = size * 1.45;
+      o.lines.forEach((line, i) => {
+        const last = i === o.lines.length - 1;
+        k.text(line, o.x, o.y + i * lh, { size, weight: last ? 900 : 700, colour: last ? (o.resultColour ?? GOLD) : WHITE,
+          align: o.align, at: (o.at ?? 0) + i * gap });
+      });
+      return o.lines.length * lh;
+    },
+  };
+
+  function roundRect(x, y, w, h, r, fill, stroke, lw) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw ?? 2; ctx.stroke(); }
+  }
+  function clipRound(x, y, w, h, r) { roundRect(x, y, w, h, r); ctx.clip(); }
+  function drawTick(x, y, s, c) {
+    ctx.save(); ctx.strokeStyle = c; ctx.lineWidth = s * 0.13; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(x - s * 0.33, y + s * 0.02); ctx.lineTo(x - s * 0.12, y + s * 0.23); ctx.lineTo(x + s * 0.33, y - s * 0.23);
+    ctx.stroke(); ctx.restore();
+  }
+  function drawCross(x, y, s, c) {
+    ctx.save(); ctx.strokeStyle = c; ctx.lineWidth = s * 0.13; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x - s * 0.25, y - s * 0.25); ctx.lineTo(x + s * 0.25, y + s * 0.25);
+    ctx.moveTo(x + s * 0.25, y - s * 0.25); ctx.lineTo(x - s * 0.25, y + s * 0.25); ctx.stroke(); ctx.restore();
+  }
+  return k;
+};
+
+// ─── backdrop ─────────────────────────────────────────────────────────────
+const drawBackdrop = (ctx, time) => {
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, INK); g.addColorStop(0.4, "#1a1050"); g.addColorStop(1, INK);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const pos = [[60, 60], [1200, 90], [100, 650], [1180, 610], [620, 40], [620, 680], [300, 350], [950, 350]];
+  ctx.fillStyle = tint(GOLD, 0.12);
+  pos.forEach(([x, y], i) => {
+    const ph = ((time * FPS + i * 18) % 90) / 90;
+    const drift = ph < 0.5 ? -8 + 32 * ph : 8 - 32 * (ph - 0.5);
+    ctx.beginPath(); ctx.arc(x + 5, y + drift + 5, 5, 0, Math.PI * 2); ctx.fill();
+  });
+};
+
+// ─── built-in scenes ──────────────────────────────────────────────────────
+const E = window.EXPLAINER ?? EXPLAINER;
+const opts = E.options ?? [];
+const words = (s) => (Array.isArray(s) ? s.map((g) => (Array.isArray(g) ? g[0] : g)).join("") : String(s ?? "")).split(/\s+/).filter(Boolean).length;
+const plain = (s) => (Array.isArray(s) ? s.map((g) => (Array.isArray(g) ? g[0] : g)).join("") : String(s ?? ""));
+const trapLetters = (E.traps ?? []).flatMap((tr) => String(tr.option ?? "").split(/[^A-Za-z0-9]+/)).filter(Boolean);
+
+const titleScene = (k) => {
+  k.text(E.title, W / 2, H / 2 - 30, { size: TYPE.hero, weight: 900, align: "center", at: 0 });
+  k.text(E.subtitle ?? "Maths · Step-by-Step", W / 2, H / 2 + 55, { size: 36, weight: 400, colour: DIM, align: "center", at: 0.6 });
+};
+
+const questionScene = (k) => {
+  const short = typeof E.question === "string" && E.question.length <= 40 && !E.question.includes("\n");
+  const size = short ? 72 : TYPE.body;
+  const ctx = k.ctx;
+  // Measure the paragraph first so the card fits it.
+  const probe = makeKit(ctx, -1, "", () => {});
+  ctx.save(); ctx.globalAlpha = 0;
+  const textH = probe.paragraph(E.question, W / 2, 0, { size, width: 1040, align: "center", weight: short ? 900 : 400 });
+  ctx.restore();
+  const cardH = textH + 64, hasOpts = opts.length > 0, hint = E.hint;
+  const blockH = 40 + cardH + (hasOpts ? 110 : 0) + (hint ? 70 : 0);
+  let y = (H - blockH) / 2;
+  k.text("THE QUESTION", W / 2, y + 14, { size: 28, weight: 800, colour: GOLD, align: "center", at: 0, anim: "fade" });
+  y += 40;
+  k.card(W / 2 - 560, y, 1120, cardH, { at: 0.27 });
+  k.paragraph(E.question, W / 2, y + 32, { size, width: 1040, align: "center", weight: short ? 900 : 400, at: 0.27 });
+  y += cardH;
+  if (hasOpts) { k.chips(opts, W / 2, y + 70, { at: 1.5 }); y += 110; }
+  if (hint) k.text(hint, W / 2, y + 50, { size: TYPE.small, weight: 400, colour: DIM, align: "center", at: hasOpts ? 2.6 : 1.4, anim: "fade" });
+};
+
+const methodScene = (k) => {
+  const steps = E.method?.steps ?? [];
+  const rowH = 86, top = (H - (70 + steps.length * rowH)) / 2;
+  k.text(`The ${E.method?.name ?? ""} method`, SAFE + 16, top + 30, { size: 56, weight: 900, colour: GOLD, at: 0 });
+  steps.forEach((s, i) => {
+    const y = top + 110 + i * rowH, at = 0.73 + i * 0.8;
+    k.card(SAFE + 16, y - 38, 76, 76, { colour: GOLD, fill: 0.16, at });
+    k.text(s.l, SAFE + 54, y, { size: 42, weight: 900, colour: GOLD, align: "center", at });
+    k.text(s.w, SAFE + 120, y, { size: 46, weight: 900, at, maxWidth: 330 });
+    k.text(s.d, SAFE + 470, y, { size: TYPE.small, weight: 400, colour: DIM, at });
+  });
+};
+
+const stepScene = (step) => (k, t) => {
+  if (step.badge || step.title) k.badge(step.badge ?? "", step.title ?? "", SAFE + 16, 96, { at: 0 });
+  step.draw(k, t);
+};
+
+const trapScene = (k) => {
+  const tr = (E.traps ?? [])[0];
+  if (!tr) return;
+  const cw = 540, gap = 30, x1 = W / 2 - cw - gap / 2, x2 = W / 2 + gap / 2;
+  const probe = makeKit(k.ctx, -1, "", () => {});
+  const textH = Math.max(probe.paragraph(tr.text, 0, 0, { size: TYPE.small, width: cw - 68 }),
+                         probe.paragraph(tr.fix ?? "", 0, 0, { size: TYPE.small, width: cw - 68 }));
+  const ch = 84 + textH + 30, y = (H - ch) / 2 + 40;
+  k.text("Watch out!", W / 2, y - 70, { size: 56, weight: 900, colour: RED, align: "center", at: 0, anim: "pop" });
+  k.card(x1, y, cw, ch, { colour: RED, at: 0.8 });
+  k.cross(x1 + 46, y + 44, { size: 36, at: 0.8 });
+  k.text("THE TRAP", x1 + 74, y + 44, { size: 28, weight: 900, colour: RED, at: 0.8 });
+  k.paragraph(tr.text, x1 + 34, y + 84, { size: TYPE.small, width: cw - 68, at: 0.8 });
+  k.card(x2, y, cw, ch, { colour: GREEN, at: 1.67 });
+  k.tick(x2 + 46, y + 44, { size: 36, at: 1.67 });
+  k.text("DO THIS INSTEAD", x2 + 74, y + 44, { size: 28, weight: 900, colour: GREEN, at: 1.67 });
+  k.paragraph(tr.fix ?? "", x2 + 34, y + 84, { size: TYPE.small, width: cw - 68, at: 1.67 });
+};
+
+const checkScene = (k, t) => {
+  const c = E.check ?? {};
+  k.badge("tick", c.title ?? "Check it", SAFE + 16, 96, { at: 0 });
+  if (c.draw) return c.draw(k, t);
+  const lines = c.lines ?? [];
+  const lh = TYPE.math * 1.45, top = (H - lines.length * lh) / 2 + 40;
+  k.working({ lines, x: W / 2, y: top, size: TYPE.math, align: "center", at: 0.67, resultColour: GREEN });
+};
+
+const answerScene = (k) => {
+  const long = plain(E.answer).length > 6;
+  const traps = E.traps ?? [];
+  let y = 0;
+  if (opts.length) {
+    k.chips(opts, W / 2, 110, { at: 0, stagger: 0, styleFor: (l) => (
+      l === E.answerOption ? { colour: GREEN } : trapLetters.includes(l) ? { colour: RED } : { faded: true }) });
+    y = 160;
+  }
+  const trapH = 50 + traps.length * 56 + 70;
+  if (!traps.length) {
+    const cy = y + (H - y) / 2;
+    k.text("ANSWER", W / 2, cy - TYPE.answer / 2 - 40, { size: 28, weight: 400, colour: DIM, align: "center", at: 0, anim: "fade" });
+    k.text(E.answer, W / 2, cy, { size: TYPE.answer, weight: 900, colour: GOLD, align: "center", at: 0.33, anim: "pop" });
+    k.text("Well done!", W / 2, cy + TYPE.answer / 2 + 50, { size: 44, weight: 800, colour: GREEN, align: "center", at: 1.2 });
+    return;
+  }
+  if (long) {
+    const top = y + (H - y - (TYPE.answer + 30 + trapH)) / 2;
+    k.text("ANSWER", W / 2, top, { size: 28, weight: 400, colour: DIM, align: "center", at: 0, anim: "fade" });
+    k.text(E.answer, W / 2, top + 30 + TYPE.answer / 2, { size: TYPE.answer, weight: 900, colour: GOLD, align: "center", at: 0.33, anim: "pop" });
+    trapList(k, W / 2 - 300, top + TYPE.answer + 70, 600);
+  } else {
+    const cy = y + (H - y) / 2;
+    k.text("ANSWER", 300, cy - TYPE.answer / 2 - 10, { size: 28, weight: 400, colour: DIM, align: "center", at: 0, anim: "fade" });
+    k.text(E.answer, 300, cy + 20, { size: TYPE.answer, weight: 900, colour: GOLD, align: "center", at: 0.33, anim: "pop", maxWidth: 440 });
+    trapList(k, 560, cy - trapH / 2 + 20, 650);
+  }
+};
+const trapList = (k, x, y, width) => {
+  const traps = E.traps ?? [];
+  if (!traps.length) { k.text("Well done!", x, y + 20, { size: 44, weight: 800, colour: GREEN, at: 1.5 }); return; }
+  k.text("TRAPS TO AVOID", x, y, { size: 30, weight: 900, colour: RED, at: 1.33, anim: "fade" });
+  let cy = y + 50;
+  traps.forEach((tr, i) => {
+    const at = 1.73 + i * 0.67;
+    k.cross(x + 16, cy + 16, { size: 32, at });
+    cy += Math.max(56, k.paragraph(tr.text, x + 44, cy, { size: 30, width: width - 44, at }) + 14);
+  });
+  k.text("Well done!", x, cy + 30, { size: 44, weight: 800, colour: GREEN, at: 1.73 + traps.length * 0.67 + 0.6 });
+};
+
+// ─── timeline ─────────────────────────────────────────────────────────────
+const qSeconds = Math.min(12, Math.max(6, 2 + 0.3 * words(E.question) + 1.5 + (opts.length ? 2 : 0)));
+const SCENES = [
+  { name: "Title", seconds: 3, draw: titleScene },
+  { name: "Question", seconds: qSeconds, draw: questionScene },
+  ...(E.method?.steps?.length ? [{ name: "Method", seconds: 5.5, draw: methodScene }] : []),
+  ...(E.steps ?? []).map((s) => ({ name: s.name, seconds: s.seconds ?? 7, draw: stepScene(s) })),
+  ...((E.traps ?? []).length ? [{ name: "The trap", seconds: 7, draw: trapScene }] : []),
+  ...(E.check ? [{ name: "Check", seconds: E.check.seconds ?? 5.5, draw: checkScene }] : []),
+  { name: "Answer", seconds: 8, draw: answerScene },
+];
+let acc = 0;
+SCENES.forEach((s) => { s.start = acc; acc += s.seconds; });
+const DURATION = acc;
+
+// ─── rendering ────────────────────────────────────────────────────────────
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const warnings = new Map();
+const warn = (scene, msg) => { if (!warnings.has(scene + msg)) warnings.set(scene + msg, `${scene}: ${msg}`); };
+
+const sceneAt = (time) => SCENES.find((s) => time < s.start + s.seconds) ?? SCENES[SCENES.length - 1];
+const renderAt = (time, target = ctx, report = () => {}) => {
+  target.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  target.globalAlpha = 1;
+  drawBackdrop(target, time);
+  const s = sceneAt(time), t = Math.min(time - s.start, s.seconds);
+  // Fade the last 0.25 s of every scene except the final one.
+  const out = s !== SCENES[SCENES.length - 1] ? 1 - prog(t, s.seconds - 0.25, 0.25) : 1;
+  target.save();
+  target.globalAlpha = out;
+  try { s.draw(makeKit(target, t, s.name, report), t); }
+  catch (e) { report(s.name, "error: " + e.message); }
+  target.restore();
+};
+
+// Layout check: draw each scene fully built, off screen, and collect warnings.
+(() => {
+  const off = document.createElement("canvas"); off.width = 1920; off.height = 1080;
+  const octx = off.getContext("2d");
+  SCENES.forEach((s) => renderAt(s.start + s.seconds - 0.4, octx, warn));
+  const el = document.getElementById("check");
+  if (warnings.size) { el.className = "bad"; el.textContent = "Layout check: " + [...warnings.values()].join(" · "); }
+  else el.textContent = "Layout check: no problems found.";
+})();
+
+// ─── player ───────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+let now = 0, playing = false, last = 0, recording = false;
+const show = () => {
+  renderAt(now);
+  $("scrub").value = String(Math.round((now / DURATION) * 1000));
+  $("time").textContent = `${fmt(now)} / ${fmt(DURATION)}`;
+  $("scenes").value = String(SCENES.indexOf(sceneAt(now)));
+};
+const loop = (ts) => {
+  if (!playing) return;
+  now = Math.min(DURATION, now + (ts - last) / 1000); last = ts;
+  show();
+  if (now >= DURATION) { playing = false; $("play").textContent = "Replay"; if (recording) finishRecording(); return; }
+  requestAnimationFrame(loop);
+};
+const play = () => {
+  if (now >= DURATION) now = 0;
+  playing = true; $("play").textContent = "Pause"; last = performance.now(); requestAnimationFrame(loop);
+};
+const pause = () => { playing = false; $("play").textContent = "Play"; };
+$("play").onclick = () => (recording ? null : playing ? pause() : play());
+$("scrub").oninput = (e) => { if (recording) return; pause(); now = (Number(e.target.value) / 1000) * DURATION; show(); };
+SCENES.forEach((s, i) => { const o = document.createElement("option"); o.value = String(i); o.textContent = `${i + 1}. ${s.name}`; $("scenes").append(o); });
+$("scenes").onchange = (e) => { if (recording) return; pause(); const s = SCENES[Number(e.target.value)]; now = s.start + s.seconds - 0.4; show(); };
+document.addEventListener("keydown", (e) => { if (e.code === "Space" && e.target === document.body) { e.preventDefault(); $("play").click(); } });
+
+// ─── video export ─────────────────────────────────────────────────────────
+// Preferred: WebCodecs. Each frame is drawn off screen and encoded (faster
+// than real time, exact timing), then packed into an MP4 by mp4() below.
+// Fallback: the browser's MediaRecorder in real time, with the WebM's
+// missing duration written in afterwards.
+const slug = plain(E.title).replace(/[=−+×÷%]/g, (c) => ({ "=": " equals ", "−": " minus ", "+": " plus ", "×": " times ", "÷": " divided by ", "%": " percent " })[c])
+  .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "maths-explainer";
+const TIMESCALE = FPS * 1000;
+
+// Bytes: a box is a 4-byte size, a 4-character type, then its contents.
+const u8 = (...v) => new Uint8Array(v);
+const u16 = (v) => u8((v >> 8) & 255, v & 255);
+const u32 = (v) => u8((v >>> 24) & 255, (v >> 16) & 255, (v >> 8) & 255, v & 255);
+const str = (s) => new Uint8Array([...s].map((c) => c.charCodeAt(0)));
+const cat = (parts) => {
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+};
+const box = (type, ...parts) => { const body = cat(parts); return cat([u32(body.length + 8), str(type), body]); };
+const full = (type, version, flags, ...parts) => box(type, u8(version, (flags >> 16) & 255, (flags >> 8) & 255, flags & 255), ...parts);
+const zeros = (n) => new Uint8Array(n);
+const MATRIX = cat([u32(0x10000), u32(0), u32(0), u32(0), u32(0x10000), u32(0), u32(0), u32(0), u32(0x40000000)]);
+
+/** A plain MP4 (moov before mdat) from encoded samples; durations in the header. */
+const mp4 = ({ codec, width, height, description, samples }) => {
+  const n = samples.length, movieDur = Math.round((n * 1000) / FPS);
+  const entry = codec === "avc1"
+    ? box("avcC", description)
+    : full("vpcC", 1, 0, u8(0, 40, 0x82, 1, 1, 1), u16(0)); // profile 0, level 4, 8-bit 4:2:0, BT.709
+  const sampleEntry = box(codec, zeros(6), u16(1), zeros(16), u16(width), u16(height),
+    u32(0x480000), u32(0x480000), u32(0), u16(1), zeros(32), u16(0x18), u16(0xffff), entry);
+  const keys = samples.map((s, i) => (s.key ? i + 1 : 0)).filter(Boolean);
+  const stbl = (offset) => box("stbl",
+    full("stsd", 0, 0, u32(1), sampleEntry),
+    full("stts", 0, 0, u32(1), u32(n), u32(TIMESCALE / FPS)),
+    full("stss", 0, 0, u32(keys.length), ...keys.map(u32)),
+    full("stsc", 0, 0, u32(1), u32(1), u32(n), u32(1)),
+    full("stsz", 0, 0, u32(0), u32(n), ...samples.map((s) => u32(s.data.length))),
+    full("stco", 0, 0, u32(1), u32(offset)));
+  const moov = (offset) => box("moov",
+    full("mvhd", 0, 0, u32(0), u32(0), u32(1000), u32(movieDur), u32(0x10000), u16(0x100), zeros(10), MATRIX, zeros(24), u32(2)),
+    box("trak",
+      full("tkhd", 0, 3, u32(0), u32(0), u32(1), u32(0), u32(movieDur), zeros(8), u16(0), u16(0), u16(0), u16(0), MATRIX, u32(width << 16), u32(height << 16)),
+      box("mdia",
+        full("mdhd", 0, 0, u32(0), u32(0), u32(TIMESCALE), u32(n * (TIMESCALE / FPS)), u16(0x55c4), u16(0)),
+        full("hdlr", 0, 0, u32(0), str("vide"), zeros(12), str("VideoHandler"), u8(0)),
+        box("minf",
+          full("vmhd", 0, 1, zeros(8)),
+          box("dinf", full("dref", 0, 0, u32(1), full("url ", 0, 1))),
+          stbl(offset)))));
+  const ftyp = box("ftyp", str("isom"), u32(0x200), str("isom"), str("iso2"), str(codec === "avc1" ? "avc1" : "vp09"), str("mp41"));
+  const head = ftyp.length + moov(0).length + 8;
+  const data = cat(samples.map((s) => s.data));
+  return new Blob([ftyp, moov(head), u32(data.length + 8), str("mdat"), data], { type: "video/mp4" });
+};
+
+const CONFIGS = ["avc1.640028", "avc1.4d0028", "avc1.42e028", "vp09.00.40.08"].map((codec) => ({
+  codec, width: 1920, height: 1080, framerate: FPS, bitrate: codec.startsWith("avc1") ? 900_000 : 700_000, bitrateMode: "variable",
+  latencyMode: "quality", alpha: "discard", ...(codec.startsWith("avc1") ? { avc: { format: "avc" } } : {}),
+}));
+const pickConfig = async () => {
+  if (!window.VideoEncoder || !window.VideoFrame) return null;
+  for (const c of CONFIGS) {
+    try { if ((await VideoEncoder.isConfigSupported(c)).supported) return c; } catch (e) { /* try the next */ }
+  }
+  return null;
+};
+
+const encodeMP4 = async (config, onProgress) => {
+  const total = Math.round(DURATION * FPS), samples = [];
+  let description = null, failure = null;
+  const enc = new VideoEncoder({
+    output: (chunk, meta) => {
+      if (meta?.decoderConfig?.description && !description) description = new Uint8Array(meta.decoderConfig.description);
+      const data = new Uint8Array(chunk.byteLength); chunk.copyTo(data);
+      samples.push({ data, key: chunk.type === "key" });
+    },
+    error: (e) => { failure = e; },
+  });
+  enc.configure(config);
+  const off = document.createElement("canvas"); off.width = 1920; off.height = 1080;
+  const octx = off.getContext("2d");
+  for (let i = 0; i < total && !failure; i++) {
+    renderAt(i / FPS, octx);
+    const frame = new VideoFrame(off, { timestamp: Math.round((i * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
+    enc.encode(frame, { keyFrame: i % (FPS * 2) === 0 });
+    frame.close();
+    while (enc.encodeQueueSize > 4) await new Promise((r) => setTimeout(r, 0));
+    if (i % 10 === 0) { onProgress(i / total); await new Promise((r) => setTimeout(r, 0)); }
+  }
+  await enc.flush(); enc.close();
+  if (failure) throw failure;
+  return mp4({ codec: config.codec.slice(0, 4), width: 1920, height: 1080, description, samples });
+};
+
+// WebM from MediaRecorder has no Duration; write one into Segment › Info.
+const fixWebmDuration = async (blob, ms) => {
+  const b = new Uint8Array(await blob.arrayBuffer());
+  const vint = (p) => { let len = 1; while (len <= 8 && !(b[p] & (0x80 >> (len - 1)))) len++; let v = b[p] & (0xff >> len); for (let i = 1; i < len; i++) v = v * 256 + b[p + i]; return { len, v }; };
+  const id = (p) => { let len = 1; while (len <= 4 && !(b[p] & (0x80 >> (len - 1)))) len++; let v = 0; for (let i = 0; i < len; i++) v = v * 256 + b[p + i]; return { len, v }; };
+  let p = 0;
+  const ebml = id(p); if (ebml.v !== 0x1a45dfa3) return blob;
+  p += ebml.len; const es = vint(p); p += es.len + es.v;
+  const seg = id(p); if (seg.v !== 0x18538067) return blob;
+  p += seg.len; p += vint(p).len;
+  const info = id(p); if (info.v !== 0x1549a966) return blob;
+  const sizeAt = p + info.len, isz = vint(sizeAt), bodyAt = sizeAt + isz.len, end = bodyAt + isz.v;
+  for (let q = bodyAt; q < end;) { const e = id(q); if (e.v === 0x4489) return blob; const s = vint(q + e.len); q += e.len + s.len + s.v; }
+  const dur = new Uint8Array(8); new DataView(dur.buffer).setFloat64(0, ms);
+  const element = cat([u8(0x44, 0x89, 0x88), dur]);
+  const newSize = isz.v + element.length;
+  const size = new Uint8Array(8); // the new Info size as an 8-byte EBML number
+  size[0] = 0x01;
+  for (let i = 1; i < 8; i++) size[i] = Math.floor(newSize / 2 ** (8 * (7 - i))) & 255;
+  return new Blob([b.slice(0, sizeAt), size, b.slice(bodyAt, end), element, b.slice(end)], { type: "video/webm" });
+};
+
+let recorder = null, chunks = [];
+const recordRealtime = () => new Promise((resolve) => {
+  const type = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4;codecs=avc1", "video/mp4"]
+    .find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+  if (!type || !canvas.captureStream) return resolve(null);
+  chunks = [];
+  recorder = new MediaRecorder(canvas.captureStream(FPS), { mimeType: type, videoBitsPerSecond: 2_500_000 });
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.onstop = async () => {
+    const raw = new Blob(chunks, { type: type.split(";")[0] });
+    resolve(type.startsWith("video/webm") ? await fixWebmDuration(raw, DURATION * 1000) : raw);
+  };
+  $("status").textContent = `Recording… keep this tab open and visible. It takes ${fmt(DURATION)} (the length of the video).`;
+  pause(); now = 0; show();
+  recorder.start(1000);
+  recording = true; play();
+});
+const finishRecording = () => { if (recorder && recorder.state !== "inactive") setTimeout(() => recorder.stop(), 300); };
+
+const deliver = (blob) => {
+  const ext = blob.type === "video/mp4" ? "mp4" : "webm", url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = `${slug}.${ext}`;
+  document.body.append(a); a.click(); a.remove();
+  $("status").innerHTML = `Done: <a href="${url}" download="${slug}.${ext}">${slug}.${ext}</a> (${(blob.size / 1e6).toFixed(1)} MB, ${fmt(DURATION)}). If it didn't download, use this link or the player below.`;
+  $("preview").src = url; $("preview").style.display = "block";
+};
+
+let exporting = false;
+$("record").onclick = async () => {
+  if (exporting) return;
+  exporting = true; $("record").disabled = true; $("play").disabled = true; pause();
+  try {
+    const config = await pickConfig();
+    let blob;
+    if (config) {
+      blob = await encodeMP4(config, (p) => { $("status").textContent = `Making the video… ${Math.round(p * 100)}%`; });
+    } else {
+      blob = await recordRealtime();
+      recording = false;
+    }
+    if (blob) deliver(blob);
+    else $("status").textContent = "This browser can't make video files. Try Chrome, Edge or Safari on a computer.";
+  } catch (e) {
+    $("status").textContent = "Couldn't make the video: " + e.message;
+  }
+  exporting = false; $("record").disabled = false; $("play").disabled = false;
+  now = 0; show();
+};
+
+// Start on the title, fully built.
+now = 0; show();
+const params = new URLSearchParams(location.search);
+if (params.has("t")) { now = Math.min(DURATION, Number(params.get("t"))); show(); }
+window.__explainer = { SCENES, DURATION, renderAt: (time) => { now = time; show(); }, warnings, record: () => $("record").click(), mp4, fixWebmDuration };
+})();
+</script>
+</body>
+</html>

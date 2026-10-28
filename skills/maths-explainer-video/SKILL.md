@@ -1,6 +1,6 @@
 ---
 name: maths-explainer-video
-description: Turn a school maths question into a polished, animated worked-solution video (1080p MP4) with a consistent house style, built with Remotion. Use this whenever someone shares a maths or numeracy question (photo, screenshot or typed text) and wants a video, animation, explainer or visual walkthrough of how to solve it, for any level or exam (11+, SATs, GCSE, state tests, grade-school word problems, homework). Also use it when they ask to "make a video for this question", "animate this solution" or "explain this step by step as a video", even if they don't mention Remotion.
+description: Turn a school maths question into a polished, animated worked-solution video (1080p MP4) with a consistent house style, built with Remotion. Use this whenever someone shares a maths or numeracy question (photo, screenshot or typed text) and wants a video, animation, explainer or visual walkthrough of how to solve it, for any level or exam (11+, SATs, GCSE, state tests, grade-school word problems, homework). Also use it when they ask to "make a video for this question", "animate this solution" or "explain this step by step as a video", even if they don't mention Remotion. It needs Node.js and npm; when those aren't available, or the user wants a no-install or in-chat version, use maths-explainer-anywhere instead.
 ---
 
 # Maths explainer video
