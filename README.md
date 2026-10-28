@@ -1,5 +1,7 @@
 # Skills
 
+[![skills.sh](https://skills.sh/b/srinivasankh/skills)](https://skills.sh/srinivasankh/skills)
+
 Agent skills for [Claude Code](https://docs.claude.com/en/docs/claude-code) and other agents that support the open `SKILL.md` format.
 
 | Skill | What it does |
