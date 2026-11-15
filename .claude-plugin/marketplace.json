@@ -1,0 +1,14 @@
+{
+  "name": "srinivasankh-skills",
+  "description": "Claude Code plugins (mods) from the srinivasankh/skills repository",
+  "owner": {
+    "name": "The skills contributors"
+  },
+  "plugins": [
+    {
+      "name": "wordspark-look",
+      "source": "./plugins/wordspark-look",
+      "description": "WordSpark colours and a floating-letters backdrop for the Claude Desktop and mobile apps"
+    }
+  ]
+}
