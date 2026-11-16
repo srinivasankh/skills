@@ -9,13 +9,6 @@ A public collection of agent skills in the open `SKILL.md` format. Each skill li
 - **Licensing.** Code is MIT (root `LICENSE`). Bundled third-party assets keep their own licence, with the licence text next to them (e.g. the OFL fonts in `maths-explainer-video`).
 - **Listed in the README.** Adding a skill means adding a row to the table in `README.md`, plus a short usage section.
 
-## Plugins (mods)
-
-- Claude Code plugins live in `plugins/<name>/` and are listed in `.claude-plugin/marketplace.json` (marketplace name `srinivasankh-skills`, `source: "./plugins/<name>"`). They are not skills: no `SKILL.md`, so `npx skills` and skills.sh ignore them.
-- The same public/impersonal and self-contained rules apply. Add a row to the Plugins table in `README.md` and give each plugin its own README with install lines.
-- Before committing a plugin: `claude plugin validate plugins/<name>` and `claude plugin validate .` (the marketplace), and type-check it. Bump `version` in its `plugin.json` when it changes, so `claude plugin update` picks it up.
-- `make-colors.js` / `make-colors.d.ts` in a theme mod are copied unchanged from Claude Code's plugin-authoring skill (Anthropic's generated code, not MIT); refresh them from a newer build rather than editing them.
-
 ## Changing a skill
 
 - Build and improve skills with the `skill-creator` workflow: draft, run the test cases in `skills/<name>/evals/` with and without the skill, review the outputs, then revise.
