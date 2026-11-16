@@ -9,22 +9,6 @@ Agent skills for [Claude Code](https://docs.claude.com/en/docs/claude-code) and 
 | [`maths-explainer-video`](skills/maths-explainer-video/) | Turns a school maths question into an animated, step-by-step worked-solution video (1080p MP4) in a consistent house style, built with [Remotion](https://www.remotion.dev/). |
 | [`maths-explainer-anywhere`](skills/maths-explainer-anywhere/) | The same explainer videos with nothing to install: one HTML file that plays in any browser and saves itself as an MP4. Works in Claude chat too. |
 
-## Plugins
-
-Claude Code plugins live in [`plugins/`](plugins/). This repository is also a plugin marketplace (`.claude-plugin/marketplace.json`).
-
-| Plugin | What it does |
-| --- | --- |
-| [`wordspark-look`](plugins/wordspark-look/) | A mod that gives the Claude Desktop and mobile apps WordSpark's mint-and-sunshine colours and a gentle floating-letters backdrop. |
-
-Install one at the prompt of a Claude Code terminal session:
-
-```
-/plugin install wordspark-look --marketplace srinivasankh/skills
-```
-
-or from a shell: `claude plugin marketplace add srinivasankh/skills`, then `claude plugin install wordspark-look@srinivasankh-skills`. Each plugin's README has the details.
-
 ## Install
 
 With the [`skills`](https://www.npmjs.com/package/skills) CLI:
